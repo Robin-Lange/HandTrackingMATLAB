@@ -4,8 +4,6 @@ close all
 
 % Initialize the ousterFileReader with the .pcap and .json files
 ousterReader = ousterFileReader("OS-0-128_122313000402_2048x10_20250306_183057.pcap", "OS-0-128_122313000402_2048x10_20250306_183057.json");
-ousterReader.CurrentTime = ousterReader.StartTime + seconds(0.3);
-
 % Create a figure for visualization
 figure
 
