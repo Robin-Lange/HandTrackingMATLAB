@@ -1,27 +1,4 @@
 clear; clc; close all;
-%% 1. Data Loading and Initialization
-% Define the file names for the Ouster lidar data and metadata.
-pcapFile = "OS-0-128_122313000402_2048x10_20250306_183057.pcap";
-jsonFile = "OS-0-128_122313000402_2048x10_20250306_183057.json";
-% Create an ousterFileReader object to read the lidar data.
-try
-    ousterReader = ousterFileReader(pcapFile, jsonFile);
-catch ME
-    error("Error creating ousterFileReader. Ensure the PCAP and JSON files exist and are valid. Error: %s", ME.message);
-end
-storage = {};      % Cell array to store point clouds
-i = 1; % Initialize a counter for storing the data.
-%% 2. Point Cloud Reading and Storage
-while hasFrame(ousterReader)
-    % Read a frame from the ousterReader, obtaining the point cloud and
-    % associated attributes.
-    ptCloud = readFrame(ousterReader);
-    % Store the point cloud and near-infrared data in cell arrays.
-    storage{i} = ptCloud;
-    % Increment the counter.
-    i = i + 1;
-end
-
 %% 3. Point Cloud Processing and Visualization
 % Define the initial region of interest (ROI) for pattern search.
 roi = [-.5 -.2 -0.15 0.15 -0.15 0.15];
@@ -57,13 +34,33 @@ cube_edges = [
     5 6; 6 7; 7 8; 8 5;  % Top face
     1 5; 2 6; 3 7; 4 8   % Vertical edges
 ];
-
-% Scale factor for the direction vector (adjust as needed)
-scale_factor = 0.3;
+pause(1);
+%% 1. Data Loading and Initialization
+% Define the file names for the Ouster lidar data and metadata.
+pcapFile = "OS-0-128_122313000402_2048x10_20250306_183057.pcap";
+jsonFile = "OS-0-128_122313000402_2048x10_20250306_183057.json";
+% Create an ousterFileReader object to read the lidar data.
+try
+    ousterReader = ousterFileReader(pcapFile, jsonFile);
+catch ME
+    error("Error creating ousterFileReader. Ensure the PCAP and JSON files exist and are valid. Error: %s", ME.message);
+end
+storage = {};      % Cell array to store point clouds
+i = 1; % Initialize a counter for storing the data.
+%% 2. Point Cloud Reading and Storage
+while hasFrame(ousterReader)
+    % Read a frame from the ousterReader, obtaining the point cloud and
+    % associated attributes.
+    ptCloud = readFrame(ousterReader);
+    % Store the point cloud and near-infrared data in cell arrays.
+    storage{i} = ptCloud;
+    % Increment the counter.
+    i = i + 1;
+end
 
 %% Loop
 % Loop through the stored point clouds, starting from the 1st frame.
-for i = 40:length(storage)
+for i = 1:length(storage)
 
     % Find the indices of points within the defined ROI.
     indices = findPointsInROI(storage{1, i}, roi);
@@ -108,14 +105,14 @@ for i = 40:length(storage)
     % Display the vector
     if ~isempty(prevCentroid)
         direction = currentCentroid - prevCentroid;
-        % Normalize the direction vector to a unit vector
-        magnitude = norm(direction);
-        if magnitude ~= 0
-            direction = direction / magnitude;
+        direction_drone = 10*direction;
+        if direction_drone(1)>0.2 || direction_drone(2)>0.2 || direction_drone(3)>0.2
+            fprintf('Move drone to: [%f, %f, %f]\n', direction_drone);
+            quiver3(prevCentroid(1), prevCentroid(2), prevCentroid(3), direction_drone(1), direction_drone(2), direction_drone(3), 0, 'Color', vectorColor, 'LineWidth', 2, 'MaxHeadSize', 2);
+        else
+            %fprintf('Hand didnt move enough: [%f, %f, %f]\n', direction_drone);
+            continue;
         end
-        fprintf('Normalized direction vector from previous to current centroid: [%f, %f, %f]\n', direction);
-        scaled_direction = direction * scale_factor;  %Scaling
-        quiver3(prevCentroid(1), prevCentroid(2), prevCentroid(3), scaled_direction(1), scaled_direction(2), scaled_direction(3), 0, 'Color', vectorColor, 'LineWidth', 2, 'MaxHeadSize', 2);
     end
 
     %Plot again the segment for good vector visualization

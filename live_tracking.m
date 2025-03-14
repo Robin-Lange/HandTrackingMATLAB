@@ -1,7 +1,15 @@
 clear; clc; close all;
+warning('off','all');
+
+%% 1. Sensor Initialization and Viewfinder
+ousterObj = ousterlidar("OS0-128","OS-0-128_122313000402.json");
+preview(ousterObj,[0.2 0.5],[-.15 .15], [0 .30]);
+pause(4)
+closePreview(ousterObj);
+start(ousterObj);
 
 %% 2. Point Cloud Processing Parameters
-roi = [0.2 0.5 -.15 .15 -.15 .15];
+roi = [0.2 0.5 -.15 .15 0 0.30];
 displayRoi = [roi(1) roi(2)*2 roi(3)*4 roi(4)*4 roi(5)*4 roi(6)*4];
 % Define the minimum distance between points for clustering (in meters).
 minDistance = 0.2;
@@ -29,19 +37,10 @@ cube_edges = [
     5 6; 6 7; 7 8; 8 5;  % Top face
     1 5; 2 6; 3 7; 4 8   % Vertical edges
 ];
-% Scale factor for the direction vector (adjust as needed)
-scale_factor = 0.3;
-
-%% 1. Sensor Initialization and Viewfinder
-ousterObj = ousterlidar("OS0-128","OS-0-128_122313000402.json");
-preview(ousterObj,[0.2 0.5],[-.15 .15], [-.15 .15]);
-pause(5)
-closePreview(ousterObj);
 
 %% Loop
 for i=1:1000
-    ptCloud = read(ousterObj);
-
+    [ptCloud,pcAttributes] = read(ousterObj,1, "latest");
     % Find the indices of points within the defined ROI.
     indices = findPointsInROI(ptCloud, roi);
     % Select the points within the ROI to create a new point cloud.
@@ -85,14 +84,16 @@ for i=1:1000
     % Display the vector
     if ~isempty(prevCentroid)
         direction = currentCentroid - prevCentroid;
-        % Normalize the direction vector to a unit vector
-        magnitude = norm(direction);
-        if magnitude ~= 0
-            direction = direction / magnitude;
+        direction_drone = 10*direction;
+        if direction_drone(1)>0.2 | direction_drone(2)>0.2 | direction_drone(3)>0.2
+            fprintf('Move drone to: [%f, %f, %f]\n', direction_drone);
+            %move(droneObj,direction_drone);
+            quiver3(prevCentroid(1), prevCentroid(2), prevCentroid(3), direction_drone(1), direction_drone(2), direction_drone(3), 0, 'Color', vectorColor, 'LineWidth', 2, 'MaxHeadSize', 2);
+
+        else
+            %fprintf('Hand didnt move enough: [%f, %f, %f]\n', direction_drone);
+            continue;
         end
-        fprintf('Normalized direction vector from previous to current centroid: [%f, %f, %f]\n', direction);
-        scaled_direction = direction * scale_factor;  %Scaling
-        quiver3(prevCentroid(1), prevCentroid(2), prevCentroid(3), scaled_direction(1), scaled_direction(2), scaled_direction(3), 0, 'Color', vectorColor, 'LineWidth', 2, 'MaxHeadSize', 2);
     end
 
     %Plot again the segment for good vector visualization
@@ -118,6 +119,7 @@ for i=1:1000
     [caz, cel] = view(v);
 
     % Pause for a short duration to allow visualization.
-    pause(0.1);
+    pause(0.05);
 end
+stop(ousterObj);
 disp('Landing Requested');
