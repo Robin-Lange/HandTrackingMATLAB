@@ -46,6 +46,11 @@ function [T, p, xdir,ydir,yaw] = affine_fit(X)
     eigenvalues = diag(D_eig);
 
     % 5. The normal vector 'n' corresponds to the eigenvector with the *smallest* eigenvalue.
+    if max(eigenvalues) - min(eigenvalues) < 1e-6
+        warning('The points are collinear, a unique plane cannot be defined.');
+        T = eye(3); p = mean(X,1); xdir = 0; ydir = 0; yaw = 0;
+        return;
+    end
     [~, min_eval_idx] = min(eigenvalues);
     n = V_eig(:, min_eval_idx); % n is a 3x1 column vector
 
@@ -54,6 +59,12 @@ function [T, p, xdir,ydir,yaw] = affine_fit(X)
     % as the x-component of the centroid p(1). If they have the same sign,
     % n(1) is pointing 'away' from the origin relative to p(1), so we flip n.
     % Use a small tolerance for robustness against p(1) or n(1) being near zero.
+    if norm(n) < 1e-6
+        warning('Normal vector is close to zero.');
+        T = eye(3); p = mean(X,1); xdir = 0; ydir = 0; yaw = 0;
+        return;
+    end
+
     if p(1) * n(1) > 1e-10
         n = -n;
     elseif abs(p(1)) < 1e-10 && n(1) < 0 % If centroid is on YZ plane, point towards +x arbitrarily
