@@ -83,6 +83,26 @@ live_control_and_tracking
 
 To use the code only for sensing and logging, keep the drone motion commands commented out.
 
+## Continuous integration
+
+This repository includes a GitHub Actions workflow at `.github/workflows/ci.yml` that runs on pull requests and pushes to `main`/`master` and performs:
+
+- Repository checks:
+  - GitHub workflow linting with `actionlint`
+  - Trailing-whitespace checks for tracked `.m`, `.md`, `.yml`, and `.yaml` files
+- MATLAB unit tests from the `tests` folder using `matlab-actions/setup-matlab` and `matlab-actions/run-tests`
+
+### Run tests locally
+
+From the repository root in MATLAB:
+
+```matlab
+results = runtests("tests");
+assert(all([results.Passed]), "Some tests failed.");
+```
+
+The included tests are headless and focus on `affine_fit` behavior that does not require LiDAR hardware, drone hardware, camera access, or live sensor streams.
+
 ## Key parameters
 
 The main experimental parameters are defined directly in the scripts:
