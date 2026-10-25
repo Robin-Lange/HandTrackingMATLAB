@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  repo-checks:
+    name: Repository checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Lint GitHub workflow files
+        uses: rhysd/actionlint@v1
+
+      - name: Check for trailing whitespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          files="$(git ls-files '*.m' '*.md' '*.yml' '*.yaml')"
+          if [ -n "${files}" ]; then
+            if grep -nH -E '[[:blank:]]$' ${files}; then
+              echo "Trailing whitespace detected."
+              exit 1
+            fi
+          fi
+
+  matlab-tests:
+    name: MATLAB unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+
+      - name: Run MATLAB tests
+        uses: matlab-actions/run-tests@v2
+        with:
+          source-folder: .
+          select-by-folder: tests
+          test-results-junit: test-results/results.xml
