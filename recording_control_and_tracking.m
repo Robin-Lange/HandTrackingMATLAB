@@ -55,14 +55,14 @@ for j = 1:length(storage)
             fprintf('Turn drone about: %f\n', yaw);
             %turn(droneObj,eul(3));
     end
-    if abs(xdir)>0.2 | abs(ydir)>0.2 | abs(zdir)>0.2 
+    if abs(xdir)>0.2 | abs(ydir)>0.2 | abs(zdir)>0.2
             fprintf('Move drone to: [%f, %f, %f]\n', [xdir, ydir, zdir]);
             %move(droneObj,[x_dir, y_dir, z_dir], 'Speed', 0.1);
     else
         fprintf('Hand didnt move enough: [%f, %f, %f]\n', [xdir, ydir, zdir]);
         continue;
     end
-    %% 6. Visualize 
+    %% 6. Visualize
     pcshow(clean_ptCloud);
     hold on;
     plot3(p(1),p(2),p(3),'ro','markersize',15,'markerfacecolor','red');

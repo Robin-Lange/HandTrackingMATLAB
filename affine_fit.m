@@ -60,7 +60,6 @@ function [T, p, xdir,ydir,yaw] = affine_fit(X)
          n = -n; % Or choose based on another criterion if needed
     end
 
-    
     % 7. The plane basis V consists of the eigenvectors corresponding to the
     %    *two largest* eigenvalues. These vectors are orthogonal to n and span the plane.
     all_indices = 1:3;
@@ -68,7 +67,6 @@ function [T, p, xdir,ydir,yaw] = affine_fit(X)
     V = V_eig(:, plane_basis_indices); % V is 3x2
     %make sure the y vector points in the positive direction
     V(2)=abs(V(2));
-        
 
     % Ensure p is returned as a column vector if desired for consistency,
     % though mean() returns a row vector. Sticking to row vector for p based on mean().
