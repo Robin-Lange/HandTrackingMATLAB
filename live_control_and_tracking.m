@@ -45,7 +45,7 @@ for j = 1:1000
             fprintf('Turn drone about: %f\n', yaw);
             %turn(droneObj,eul(3));
     end
-    if abs(xdir)>0.2 | abs(ydir)>0.2 | abs(zdir)>0.2 
+    if abs(xdir)>0.2 | abs(ydir)>0.2 | abs(zdir)>0.2
             fprintf('Move drone to: [%f, %f, %f]\n', [xdir, ydir, zdir]);
             %move(droneObj,[x_dir, y_dir, z_dir], 'Speed', 0.1);
     else
